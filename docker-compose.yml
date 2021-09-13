@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+
+  # docker run -dp 80:3000 --network red-app-db -e MYSQL_HOST=mysql -e MYSQL_USER=root -e MYSQL_PASSWORD=secret -e MYSQL_DB=notas prueba-app
+
+  app:
+    image: prueba-app
+    ports:
+      - 80:3000
+    environment:
+      MYSQL_HOST: dbserver
+      MYSQL_USER: mike
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: notas
+
+   # docker run -d --network red-app-db --network-alias mysql -v mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=notas mysql:5.7
+
+  dbserver:
+    image: mysql:5.7
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: mike
+      MYSQL_PASSWORD: secret
+      MYSQL_DATABASE: notas
