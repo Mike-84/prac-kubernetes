@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  #labels: # labels del deployment
+  #  app: application
+spec:
+  selector:
+    matchLabels: # selector de PODS
+      app: application
+  replicas: 1
+  template: # Pod Template
+    metadata:
+      labels:
+        app: application
+    spec:
+      containers:
+      - name: app-prueba
+        image: mike84/app-notas:v1
+        # env:
+        #   - name: MYSQL_HOST
+        #     value: dbserver #Pendiente del name que tenga en el stratefulset la imagen nginx ---> servicio!
+        #   - name: MYSQL_USER
+        #     value: mike
+        #   - name: MYSQL_PASSWORD
+        #     value: secret
+        #   - name: MYSQL_DB
+        #     value: notas
+        ports: # puertos que publicas
+          - containerPort: 3000
+            name: mipuerto
