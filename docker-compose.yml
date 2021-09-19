@@ -6,8 +6,7 @@ services:
 
   app:
     name: app-prueba
-    #image: (pon el nombre de la imagen)
-    build: .
+    build: ./app/
     ports:
       - 80:3000
     environment:

@@ -1,3 +1,8 @@
+# StatefulSet para mysql con PersistentVolumeClaim.
+# Nota:
+# Al eliminar, el PVC no se borra, para borrar los discos completamente:
+# kubectl delete pvc mysql-data-mysql-statefulset-0
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -10,16 +15,31 @@ spec:
     app: mysql
   #clusterIP: None
 ---
-apiVersion: apps/v1
-kind: Deployment
+# Heeadless service para el statefulset
+apiVersion: v1
+kind: Service
 metadata:
-  name: mysql
+  name: mysql-headless
 spec:
+  type: ClusterIP
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-statefulset
+spec:
+  serviceName: mysql-headless
   selector:
     matchLabels:
       app: mysql
-  strategy:
-    type: Recreate
+  updateStrategy:
+    type: RollingUpdate
+  replicas: 1
   template:
     metadata:
       labels:
@@ -29,6 +49,7 @@ spec:
       - image: mysql:5.6
         name: mysql
         env:
+          # Use secret in real usage
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -53,37 +74,14 @@ spec:
         - containerPort: 3306
           name: mysql
         volumeMounts:
-        - name: mysql-persistent-storage
+        - name: mysql-data
           mountPath: /var/lib/mysql
-      volumes:
-      - name: mysql-persistent-storage
-        persistentVolumeClaim:
-          claimName: mysql-pv-claim
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv-volume
-  labels:
-    type: local
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 4Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
-    # path: "/mnt/data1"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pv-claim
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 4Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      #storageClassName: standard
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 4Gi
